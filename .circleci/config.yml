@@ -2,15 +2,10 @@ version: 2.1
 
 jobs:
   build_and_push:
-    docker:
-      - image: cimg/node:14.17 # Utilisez l'image de base Node.js appropriée
+    machine: # Utilise une machine virtuelle complète
+      enabled: true
     steps:
       - checkout
-      - run:
-          name: Install Docker
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y docker-ce docker-ce-cli containerd.io
       - run:
           name: Build Docker image
           command: docker build -t nodetest:latest .
