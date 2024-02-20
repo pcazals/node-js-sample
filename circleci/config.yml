@@ -1,0 +1,33 @@
+version: 2.1
+
+jobs:
+  build_and_push:
+    docker:
+      - image: cimg/node:14.17 # Utilisez l'image de base Node.js appropriée
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build Docker image
+          command: docker build -t nodetest:latest .
+      - run:
+          name: Test Docker image
+          command: |
+            docker run -d --name nodetestcontainer -p 8080:80 nodetest:latest
+            # Assurez-vous que cette commande de test est appropriée pour votre application
+            # Par exemple, si votre app répond sur le port 8080, utilisez ce port dans le test
+            curl --retry 10 --retry-delay 5 -v http://localhost:8080
+      - run:
+          name: Push to DockerHub
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag nodetest:latest $DOCKERHUB_USERNAME/nodetest:latest
+            docker push $DOCKERHUB_USERNAME/nodetest:latest
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build_and_push
+
