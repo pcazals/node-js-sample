@@ -6,8 +6,11 @@ jobs:
       - image: cimg/node:14.17 # Utilisez l'image de base Node.js appropriée
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - run:
+          name: Install Docker
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y docker-ce docker-ce-cli containerd.io
       - run:
           name: Build Docker image
           command: docker build -t nodetest:latest .
@@ -15,6 +18,7 @@ jobs:
           name: Test Docker image
           command: |
             docker run -d --name nodetestcontainer -p 8080:80 nodetest
+            sleep 5 # Donne un peu de temps au conteneur pour démarrer
             curl --retry 10 --retry-delay 5 -v http://localhost:8080
       - run:
           name: Push to DockerHub
